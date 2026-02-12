@@ -25,7 +25,18 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('hardware_assets', function (Blueprint $table) {
-            $table->dropColumn(['descripcion', 'fecha_adquisicion', 'garantia_hasta', 'requiere_mantenimiento']);
+            if (Schema::hasColumn('hardware_assets', 'descripcion')) {
+                $table->dropColumn('descripcion');
+            }
+            if (Schema::hasColumn('hardware_assets', 'fecha_adquisicion')) {
+                $table->dropColumn('fecha_adquisicion');
+            }
+            if (Schema::hasColumn('hardware_assets', 'garantia_hasta')) {
+                $table->dropColumn('garantia_hasta');
+            }
+            if (Schema::hasColumn('hardware_assets', 'requiere_mantenimiento')) {
+                $table->dropColumn('requiere_mantenimiento');
+            }
         });
     }
 };
