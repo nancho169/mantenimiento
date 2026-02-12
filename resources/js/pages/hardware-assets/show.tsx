@@ -576,12 +576,6 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                                     <Layers className="h-4 w-4" />
                                     Adjuntar Documentos
                                 </Button>
-                                <Separator className="my-2" />
-                                <div className="text-xs text-muted-foreground">
-                                    <p className="font-medium">Información de contacto:</p>
-                                    <p>Soporte Técnico: soporte@empresa.com</p>
-                                    <p>Tel: +1 234 567 890</p>
-                                </div>
                             </CardContent>
                         </Card>
                     </div>
