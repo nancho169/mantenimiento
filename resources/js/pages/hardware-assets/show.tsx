@@ -602,10 +602,10 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                                                 <div className="space-y-2">
                                                     {asset.documents.map((doc) => (
                                                         <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                                                            <div className="flex items-center gap-3 flex-1">
+                                                            <div className="flex items-center gap-3 flex-1 cursor-pointer" onClick={() => window.open(`/documents/${doc.id}/download`, '_blank')}>
                                                                 <FileText className="h-5 w-5 text-blue-500" />
                                                                 <div className="flex-1">
-                                                                    <p className="font-medium text-sm">{doc.original_name}</p>
+                                                                    <p className="font-medium text-sm hover:text-blue-600 hover:underline">{doc.original_name}</p>
                                                                     <p className="text-xs text-muted-foreground">
                                                                         {formatFileSize(doc.size)} • Subido por {doc.uploader?.name || 'Usuario'} • {new Date(doc.created_at).toLocaleDateString()}
                                                                     </p>
