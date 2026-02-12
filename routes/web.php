@@ -8,6 +8,7 @@ use App\Http\Controllers\HardwareAssetController;
 use App\Http\Controllers\PcDetailController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -24,6 +25,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pc-details/report', [PcDetailController::class, 'report'])->name('pc-details.report');
     Route::resource('pc-details', PcDetailController::class);
     Route::resource('maintenances', MaintenanceController::class);
+    
+    // Document routes
+    Route::post('hardware-assets/{asset}/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 });
 
 require __DIR__.'/settings.php';

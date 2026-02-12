@@ -21,13 +21,34 @@ import {
     HardDrive,
     Layers,
     Upload,
-    FileText
+    FileText,
+    Download,
+    Trash2
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import hardwareAssets from '@/routes/hardware-assets';
 import maintenances from '@/routes/maintenances';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+
+interface User {
+    id: number;
+    name: string;
+}
+
+interface Document {
+    id: number;
+    asset_id: number;
+    filename: string;
+    original_name: string;
+    mime_type: string;
+    size: number;
+    path: string;
+    uploaded_by: number;
+    uploader?: User;
+    created_at: string;
+}
 
 interface Area {
     id: number;
@@ -44,6 +65,7 @@ interface HardwareAsset {
     estado: string;
     area_id: number;
     area?: Area;
+    documents?: Document[];
     created_at: string;
     updated_at: string;
 }
@@ -333,27 +355,45 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
 
         setUploadingDoc(true);
 
-        // Aquí iría la lógica de subida al servidor
-        // Por ahora solo simulamos la carga
         const formData = new FormData();
         Array.from(files).forEach(file => {
             formData.append('documents[]', file);
         });
-        formData.append('asset_id', asset.id.toString());
 
-        try {
-            // TODO: Implementar endpoint en el backend
-            // await router.post('/hardware-assets/' + asset.id + '/documents', formData);
-            console.log('Archivos a subir:', Array.from(files).map(f => f.name));
-            alert(`Archivos seleccionados: ${Array.from(files).map(f => f.name).join(', ')}\n\nNOTA: La funcionalidad de guardado en servidor aún no está implementada.`);
-        } catch (error) {
-            console.error('Error al subir documentos:', error);
-        } finally {
-            setUploadingDoc(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+        router.post(`/hardware-assets/${asset.id}/documents`, formData, {
+            onSuccess: () => {
+                setUploadingDoc(false);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
+            onError: (errors) => {
+                console.error('Error al subir documentos:', errors);
+                setUploadingDoc(false);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
+        });
+    };
+
+    const handleDeleteDocument = (documentId: number) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este documento?')) return;
+
+        router.delete(`/documents/${documentId}`);
+    };
+
+    const formatFileSize = (bytes: number): string => {
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let size = bytes;
+        let unitIndex = 0;
+
+        while (size > 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
         }
+
+        return `${size.toFixed(2)} ${units[unitIndex]}`;
     };
 
     return (
@@ -528,39 +568,107 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                             <TabsContent value="docs" className="mt-4">
                                 <Card>
                                     <CardContent className="pt-6">
-                                        <div className="text-center py-8">
-                                            <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                            <h3 className="font-semibold mb-2">Documentación no disponible</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                Sube documentos relacionados con este equipo.
-                                            </p>
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                multiple
-                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                                                onChange={handleFileChange}
-                                                className="hidden"
-                                            />
-                                            <Button
-                                                variant="outline"
-                                                className="mt-4 gap-2"
-                                                onClick={handleUploadClick}
-                                                disabled={uploadingDoc}
-                                            >
-                                                {uploadingDoc ? (
-                                                    <>
-                                                        <FileText className="h-4 w-4 animate-pulse" />
-                                                        Subiendo...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Upload className="h-4 w-4" />
-                                                        Subir Documentos
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
+                                        {asset.documents && asset.documents.length > 0 ? (
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h3 className="font-semibold">Documentos ({asset.documents.length})</h3>
+                                                    <input
+                                                        ref={fileInputRef}
+                                                        type="file"
+                                                        multiple
+                                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                                                        onChange={handleFileChange}
+                                                        className="hidden"
+                                                    />
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-2"
+                                                        onClick={handleUploadClick}
+                                                        disabled={uploadingDoc}
+                                                    >
+                                                        {uploadingDoc ? (
+                                                            <>
+                                                                <FileText className="h-4 w-4 animate-pulse" />
+                                                                Subiendo...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Upload className="h-4 w-4" />
+                                                                Subir más
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {asset.documents.map((doc) => (
+                                                        <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                                                            <div className="flex items-center gap-3 flex-1">
+                                                                <FileText className="h-5 w-5 text-blue-500" />
+                                                                <div className="flex-1">
+                                                                    <p className="font-medium text-sm">{doc.original_name}</p>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        {formatFileSize(doc.size)} • Subido por {doc.uploader?.name || 'Usuario'} • {new Date(doc.created_at).toLocaleDateString()}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    asChild
+                                                                >
+                                                                    <a href={`/documents/${doc.id}/download`} download>
+                                                                        <Download className="h-4 w-4" />
+                                                                    </a>
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleDeleteDocument(doc.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                                <h3 className="font-semibold mb-2">Documentación no disponible</h3>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Sube documentos relacionados con este equipo.
+                                                </p>
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                                                    onChange={handleFileChange}
+                                                    className="hidden"
+                                                />
+                                                <Button
+                                                    variant="outline"
+                                                    className="mt-4 gap-2"
+                                                    onClick={handleUploadClick}
+                                                    disabled={uploadingDoc}
+                                                >
+                                                    {uploadingDoc ? (
+                                                        <>
+                                                            <FileText className="h-4 w-4 animate-pulse" />
+                                                            Subiendo...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="h-4 w-4" />
+                                                            Subir Documentos
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </TabsContent>

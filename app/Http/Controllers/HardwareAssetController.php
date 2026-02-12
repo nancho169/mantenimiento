@@ -52,9 +52,9 @@ class HardwareAssetController extends Controller
      */
     public function show(HardwareAsset $hardwareAsset)
     {
-        $hardwareAsset->load(['area']);
+        $hardwareAsset->load(['area', 'pcDetail', 'documents.uploader']);
         return Inertia::render('hardware-assets/show', [
-            'asset' => $hardwareAsset
+            'asset' => $hardwareAsset,
         ]);
     }
 

@@ -62,8 +62,19 @@ class HardwareAsset extends Model
         return $this->hasOne(PcDetail::class, 'asset_id');
     }
 
+    /**
+     * Get the maintenances for the hardware asset.
+     */
     public function maintenances()
     {
-        return $this->hasMany(Maintenance::class);
+        return $this->hasMany(Maintenance::class, 'asset_id');
+    }
+
+    /**
+     * Get the documents for the hardware asset.
+     */
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'asset_id');
     }
 }
