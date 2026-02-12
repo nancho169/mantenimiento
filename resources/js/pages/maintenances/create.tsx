@@ -1,4 +1,3 @@
-```
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
