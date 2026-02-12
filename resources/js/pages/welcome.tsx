@@ -60,9 +60,7 @@ export default function Welcome({
                         </div>
                         <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
                             Sistema de Mantenimiento
-                            <span className="block text-amber-600 dark:text-amber-400">
-                                Área de Sistemas
-                            </span>
+
                         </h1>
                         <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
                             Gestión integral de activos tecnológicos para las dependencias municipales. Control de inventario, planificación de mantenimientos y reportes en tiempo real.
