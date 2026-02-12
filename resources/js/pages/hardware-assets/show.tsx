@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,7 +19,9 @@ import {
     Clock,
     Tag,
     HardDrive,
-    Layers
+    Layers,
+    Upload,
+    FileText
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import hardwareAssets from '@/routes/hardware-assets';
@@ -48,6 +50,8 @@ interface HardwareAsset {
 
 export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
     const [activeTab, setActiveTab] = useState('history');
+    const [uploadingDoc, setUploadingDoc] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -319,6 +323,39 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
         setActiveTab('docs');
     };
 
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setUploadingDoc(true);
+
+        // Aquí iría la lógica de subida al servidor
+        // Por ahora solo simulamos la carga
+        const formData = new FormData();
+        Array.from(files).forEach(file => {
+            formData.append('documents[]', file);
+        });
+        formData.append('asset_id', asset.id.toString());
+
+        try {
+            // TODO: Implementar endpoint en el backend
+            // await router.post('/hardware-assets/' + asset.id + '/documents', formData);
+            console.log('Archivos a subir:', Array.from(files).map(f => f.name));
+            alert(`Archivos seleccionados: ${Array.from(files).map(f => f.name).join(', ')}\n\nNOTA: La funcionalidad de guardado en servidor aún no está implementada.`);
+        } catch (error) {
+            console.error('Error al subir documentos:', error);
+        } finally {
+            setUploadingDoc(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${asset.marca} ${asset.modelo} - Detalle`} />
@@ -497,8 +534,31 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                                             <p className="text-sm text-muted-foreground">
                                                 Sube documentos relacionados con este equipo.
                                             </p>
-                                            <Button variant="outline" className="mt-4">
-                                                Subir Documentos
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                multiple
+                                                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                                                onChange={handleFileChange}
+                                                className="hidden"
+                                            />
+                                            <Button
+                                                variant="outline"
+                                                className="mt-4 gap-2"
+                                                onClick={handleUploadClick}
+                                                disabled={uploadingDoc}
+                                            >
+                                                {uploadingDoc ? (
+                                                    <>
+                                                        <FileText className="h-4 w-4 animate-pulse" />
+                                                        Subiendo...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Upload className="h-4 w-4" />
+                                                        Subir Documentos
+                                                    </>
+                                                )}
                                             </Button>
                                         </div>
                                     </CardContent>
