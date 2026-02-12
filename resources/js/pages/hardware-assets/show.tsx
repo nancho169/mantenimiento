@@ -30,7 +30,6 @@ import hardwareAssets from '@/routes/hardware-assets';
 import maintenances from '@/routes/maintenances';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 
 interface User {
     id: number;
