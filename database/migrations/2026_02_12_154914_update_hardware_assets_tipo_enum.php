@@ -21,7 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revertir a los valores originales
-        DB::statement("ALTER TABLE hardware_assets MODIFY COLUMN tipo ENUM('PC', 'Impresora') NOT NULL");
+        // No revertir el ENUM para evitar pérdida de datos
+        // Si necesitas revertir, primero actualiza los registros con tipos no compatibles
+        // DB::statement("ALTER TABLE hardware_assets MODIFY COLUMN tipo ENUM('PC', 'Impresora') NOT NULL");
     }
 };
