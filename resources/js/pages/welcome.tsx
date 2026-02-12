@@ -176,33 +176,6 @@ export default function Welcome({
                     </div>
                 </section>
 
-                {/* CTA Section */}
-                {!auth.user && (
-                    <section className="container mx-auto px-4 py-16">
-                        <Card className="max-w-4xl mx-auto bg-gradient-to-r from-amber-600 to-orange-600 border-0 text-white">
-                            <CardContent className="p-12 text-center">
-                                <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                                    ¿Listo para optimizar tu gestión?
-                                </h2>
-                                <p className="text-lg text-amber-100 mb-8 max-w-2xl mx-auto">
-                                    Únete ahora y comienza a gestionar tu infraestructura de manera profesional
-                                </p>
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <Link href={register()}>
-                                        <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-                                            Crear Cuenta Gratis
-                                        </Button>
-                                    </Link>
-                                    <Link href={login()}>
-                                        <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-white text-white hover:bg-white/10">
-                                            Ya tengo cuenta
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </section>
-                )}
 
                 {/* Footer */}
                 <footer className="border-t bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm mt-16">
