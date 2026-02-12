@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { useState } from 'react';
 import { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import hardwareAssets from '@/routes/hardware-assets';
+import maintenances from '@/routes/maintenances';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -45,6 +47,8 @@ interface HardwareAsset {
 }
 
 export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
+    const [activeTab, setActiveTab] = useState('history');
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Activos de Hardware',
@@ -303,6 +307,18 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
         });
     };
 
+    const handleRegisterMaintenance = () => {
+        router.visit(maintenances.create({ query: { asset_id: asset.id } }).url);
+    };
+
+    const handleScheduleReview = () => {
+        router.visit(maintenances.create({ query: { asset_id: asset.id } }).url);
+    };
+
+    const handleAttachDocuments = () => {
+        setActiveTab('docs');
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${asset.marca} ${asset.modelo} - Detalle`} />
@@ -428,7 +444,7 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                         </Card>
 
                         {/* Tabs para Información Adicional */}
-                        <Tabs defaultValue="history" className="w-full">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="history">
                                     <Clock className="h-4 w-4 mr-2" />
@@ -536,15 +552,27 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                                 <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <Button variant="outline" className="w-full justify-start gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start gap-2"
+                                    onClick={handleRegisterMaintenance}
+                                >
                                     <Wrench className="h-4 w-4" />
                                     Registrar Mantenimiento
                                 </Button>
-                                <Button variant="outline" className="w-full justify-start gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start gap-2"
+                                    onClick={handleScheduleReview}
+                                >
                                     <Calendar className="h-4 w-4" />
                                     Programar Revisión
                                 </Button>
-                                <Button variant="outline" className="w-full justify-start gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start gap-2"
+                                    onClick={handleAttachDocuments}
+                                >
                                     <Layers className="h-4 w-4" />
                                     Adjuntar Documentos
                                 </Button>

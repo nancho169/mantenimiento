@@ -1,5 +1,6 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+```
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { FormEventHandler, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -43,8 +44,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function MaintenanceCreate({ assets }: { assets: HardwareAsset[] }) {
+    // Get asset_id from URL query parameters
+    const { url } = usePage();
+    const urlParams = new URLSearchParams(url.split('?')[1]);
+    const preselectedAssetId = urlParams.get('asset_id') || '';
+
     const { data, setData, post, processing, errors } = useForm({
-        asset_id: '',
+        asset_id: preselectedAssetId,
         fecha_servicio: new Date().toISOString().split('T')[0], // Today YYYY-MM-DD
         tecnico: '',
         descripcion: '',
@@ -86,7 +92,7 @@ export default function MaintenanceCreate({ assets }: { assets: HardwareAsset[] 
                                 <Label htmlFor="asset_id" className="text-base font-semibold">Activo Intervenido</Label>
                                 <Select
                                     onValueChange={(value) => setData('asset_id', value)}
-                                    defaultValue={data.asset_id}
+                                    value={data.asset_id}
                                 >
                                     <SelectTrigger className="border-blue-200 focus:border-blue-500 focus:ring-blue-500">
                                         <SelectValue placeholder="Selecciona el activo" />
