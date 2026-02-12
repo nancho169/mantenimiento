@@ -55,17 +55,17 @@ export default function Welcome({
                     <div className="max-w-4xl mx-auto text-center">
                         <div className="inline-block mb-4 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 rounded-full">
                             <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-                                Gestión Profesional de Activos
+                                Municipalidad de Río Gallegos
                             </span>
                         </div>
                         <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
-                            Gestión Integral de
+                            Sistema de Mantenimiento
                             <span className="block text-amber-600 dark:text-amber-400">
-                                Mantenimiento de Hardware
+                                Área de Sistemas
                             </span>
                         </h1>
                         <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
-                            Controla tu infraestructura tecnológica, programa mantenimientos y genera reportes detallados desde una única plataforma.
+                            Gestión integral de activos tecnológicos para las dependencias municipales. Control de inventario, planificación de mantenimientos y reportes en tiempo real.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             {auth.user ? (
@@ -215,11 +215,11 @@ export default function Welcome({
                                     <Server className="h-4 w-4 text-white" />
                                 </div>
                                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                    Sistema de Mantenimiento
+                                    Sistema de Mantenimiento - Municipalidad de Río Gallegos
                                 </span>
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                © {new Date().getFullYear()} Todos los derechos reservados
+                                © {new Date().getFullYear()} Municipalidad de Río Gallegos - Área de Sistemas
                             </p>
                         </div>
                     </div>
