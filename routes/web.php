@@ -9,6 +9,7 @@ use App\Http\Controllers\PcDetailController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\BackupController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -30,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('hardware-assets/{asset}/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
     Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+    
+    // Backup route
+    Route::get('backup/download', [BackupController::class, 'download'])->name('backup.download');
 });
 
 require __DIR__.'/settings.php';

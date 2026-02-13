@@ -1,10 +1,11 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
     TrendingUp,
     Package,
@@ -17,7 +18,9 @@ import {
     Calendar,
     Activity,
     CheckCircle2,
-    Clock
+    Clock,
+    Database,
+    AlertCircle
 } from 'lucide-react';
 import areasRoutes from '@/routes/areas';
 import hardwareAssetsRoutes from '@/routes/hardware-assets';
@@ -76,6 +79,9 @@ export default function Dashboard({ stats, charts, recentMaintenances }: Dashboa
         day: 'numeric'
     });
 
+    const { props } = usePage<any>();
+    const errorMessage = props.error;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -105,9 +111,24 @@ export default function Dashboard({ stats, charts, recentMaintenances }: Dashboa
                                     Nuevo Activo
                                 </Button>
                             </Link>
+                            <a href="/backup/download">
+                                <Button variant="outline" className="gap-2 border-green-200 hover:bg-green-50">
+                                    <Database className="h-4 w-4" />
+                                    Descargar Backup
+                                </Button>
+                            </a>
                         </div>
                     </div>
                 </div>
+
+                {/* Error notification */}
+                {errorMessage && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{errorMessage}</AlertDescription>
+                    </Alert>
+                )}
 
                 {/* KPI Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
