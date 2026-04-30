@@ -30,16 +30,20 @@ class BackupController extends Controller
             
             if ($mysqldumpPath) {
                 \Log::info("Using mysqldump at: {$mysqldumpPath}");
-                return $this->backupWithMysqldump($mysqldumpPath, $dbHost, $dbPort, $dbUser, $dbPassword, $dbName, $filepath, $filename);
+                try {
+                    return $this->backupWithMysqldump($mysqldumpPath, $dbHost, $dbPort, $dbUser, $dbPassword, $dbName, $filepath, $filename);
+                } catch (\Exception $e) {
+                    \Log::warning("mysqldump failed: " . $e->getMessage() . ". Falling back to PHP-based backup.");
+                }
             }
 
             // Fallback to PHP-based backup
-            \Log::info("mysqldump not found, using PHP-based backup");
+            \Log::info("Using PHP-based backup");
             return $this->backupWithPHP($dbName, $filepath, $filename);
 
         } catch (\Exception $e) {
             \Log::error('Backup error: ' . $e->getMessage());
-            return redirect()->route('dashboard')->with('error', 'Error al generar el backup: ' . $e->getMessage());
+            return redirect()->route('dashboard')->with('errorMessage', 'Error al generar el backup: ' . $e->getMessage());
         }
     }
 
@@ -121,27 +125,46 @@ class BackupController extends Controller
             $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
 
             // Create table statement
-            $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
-            $sql .= $createTable[0]->{'Create Table'} . ";\n\n";
+            try {
+                $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
+                $createTableArray = (array)$createTable[0];
+                // The first column is the table name, the second is the create statement
+                $createSql = array_values($createTableArray)[1] ?? null;
+                
+                if ($createSql) {
+                    $sql .= $createSql . ";\n\n";
+                } else {
+                    $sql .= "-- Could not get create statement for {$tableName}\n\n";
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Could not get create statement for {$tableName}: " . $e->getMessage());
+                $sql .= "-- Error getting create statement for {$tableName}: " . $e->getMessage() . "\n\n";
+                continue; // Skip this table if we can't even get its structure
+            }
 
             // Get table data
-            $rows = DB::table($tableName)->get();
-            
-            if ($rows->count() > 0) {
-                $sql .= "-- Data for table: {$tableName}\n";
+            try {
+                $rows = DB::table($tableName)->get();
                 
-                foreach ($rows as $row) {
-                    $values = [];
-                    foreach ((array)$row as $value) {
-                        if (is_null($value)) {
-                            $values[] = 'NULL';
-                        } else {
-                            $values[] = "'" . addslashes($value) . "'";
+                if ($rows->count() > 0) {
+                    $sql .= "-- Data for table: {$tableName}\n";
+                    
+                    foreach ($rows as $row) {
+                        $values = [];
+                        foreach ((array)$row as $value) {
+                            if (is_null($value)) {
+                                $values[] = 'NULL';
+                            } else {
+                                $values[] = "'" . addslashes((string)$value) . "'";
+                            }
                         }
+                        $sql .= "INSERT INTO `{$tableName}` VALUES (" . implode(', ', $values) . ");\n";
                     }
-                    $sql .= "INSERT INTO `{$tableName}` VALUES (" . implode(', ', $values) . ");\n";
+                    $sql .= "\n";
                 }
-                $sql .= "\n";
+            } catch (\Exception $e) {
+                \Log::warning("Could not read table {$tableName}: " . $e->getMessage());
+                $sql .= "-- Error reading table data for {$tableName}: " . $e->getMessage() . "\n\n";
             }
         }
 
