@@ -25,7 +25,7 @@ class StoreHardwareAssetRequest extends FormRequest
             'tipo' => 'required|in:PC,Impresora,Monitor,Periférico,Servidor,Laptop,Router,Telefono,Escáner,Tablet',
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
-            'numero_serie' => 'required|string|unique:hardware_assets,numero_serie|max:255',
+            'numero_serie' => 'nullable|string|unique:hardware_assets,numero_serie|max:255',
             'estado' => 'required|in:Operativo,En Reparación,Baja,En Mantenimiento,Dañado,Reservado',
             'area_id' => 'nullable|exists:areas,id',
             'descripcion' => 'nullable|string',

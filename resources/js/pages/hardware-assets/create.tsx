@@ -181,7 +181,7 @@ export default function HardwareAssetCreate({ areas }: { areas: Area[] }) {
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="numero_serie" className="font-medium">
-                                                    Número de Serie <span className="text-destructive">*</span>
+                                                    Número de Serie
                                                 </Label>
                                                 <div className="relative">
                                                     <Input
