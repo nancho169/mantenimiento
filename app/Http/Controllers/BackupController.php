@@ -11,12 +11,16 @@ class BackupController extends Controller
     public function download()
     {
         try {
-            // Get database credentials from .env
-            $dbHost = env('DB_HOST', '127.0.0.1');
-            $dbPort = env('DB_PORT', '3306');
-            $dbName = env('DB_DATABASE');
-            $dbUser = env('DB_USERNAME');
-            $dbPassword = env('DB_PASSWORD');
+            // Increase execution time for large backups
+            set_time_limit(0);
+            
+            // Get database credentials from config (Safer than env() in production)
+            $dbConnection = config('database.default');
+            $dbHost = config("database.connections.{$dbConnection}.host", '127.0.0.1');
+            $dbPort = config("database.connections.{$dbConnection}.port", '3306');
+            $dbName = config("database.connections.{$dbConnection}.database");
+            $dbUser = config("database.connections.{$dbConnection}.username");
+            $dbPassword = config("database.connections.{$dbConnection}.password");
 
             // Generate filename with timestamp
             $timestamp = date('Y-m-d_H-i-s');
@@ -73,19 +77,30 @@ class BackupController extends Controller
 
     private function backupWithMysqldump($mysqldumpPath, $dbHost, $dbPort, $dbUser, $dbPassword, $dbName, $filepath, $filename)
     {
+        // Ensure directory exists and is writable
+        $dir = dirname($filepath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        
+        if (!is_writable($dir)) {
+            throw new \Exception("La carpeta de almacenamiento no tiene permisos de escritura: {$dir}");
+        }
+
         $command = sprintf(
             '"%s" --host=%s --port=%s --user=%s',
             $mysqldumpPath,
-            $dbHost,
-            $dbPort,
-            $dbUser
+            escapeshellarg($dbHost),
+            escapeshellarg($dbPort),
+            escapeshellarg($dbUser)
         );
 
         if (!empty($dbPassword)) {
-            $command .= sprintf(' --password=%s', $dbPassword);
+            // Note: --password=PASSWORD without space. escapeshellarg handles quoting on Windows.
+            $command .= ' --password=' . escapeshellarg($dbPassword);
         }
 
-        $command .= sprintf(' %s > "%s" 2>&1', $dbName, $filepath);
+        $command .= sprintf(' %s > "%s" 2>&1', escapeshellarg($dbName), $filepath);
 
         \Log::info("Executing: " . str_replace($dbPassword, '****', $command));
 
@@ -107,10 +122,15 @@ class BackupController extends Controller
 
     private function backupWithPHP($dbName, $filepath, $filename)
     {
-        $sql = "-- MySQL Backup\n";
-        $sql .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
-        $sql .= "-- Database: {$dbName}\n\n";
-        $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
+        $handle = fopen($filepath, 'w');
+        if (!$handle) {
+            throw new \Exception('Error al crear el archivo de backup.');
+        }
+
+        fwrite($handle, "-- MySQL Backup\n");
+        fwrite($handle, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
+        fwrite($handle, "-- Database: {$dbName}\n\n");
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n\n");
 
         // Get all tables
         $tables = DB::select('SHOW TABLES');
@@ -121,57 +141,51 @@ class BackupController extends Controller
             \Log::info("Backing up table: {$tableName}");
 
             // Drop table statement
-            $sql .= "-- Table: {$tableName}\n";
-            $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+            fwrite($handle, "-- Table: {$tableName}\n");
+            fwrite($handle, "DROP TABLE IF EXISTS `{$tableName}`;\n");
 
             // Create table statement
             try {
                 $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
                 $createTableArray = (array)$createTable[0];
-                // The first column is the table name, the second is the create statement
                 $createSql = array_values($createTableArray)[1] ?? null;
                 
                 if ($createSql) {
-                    $sql .= $createSql . ";\n\n";
+                    fwrite($handle, $createSql . ";\n\n");
                 } else {
-                    $sql .= "-- Could not get create statement for {$tableName}\n\n";
+                    fwrite($handle, "-- Could not get create statement for {$tableName}\n\n");
                 }
             } catch (\Exception $e) {
                 \Log::warning("Could not get create statement for {$tableName}: " . $e->getMessage());
-                $sql .= "-- Error getting create statement for {$tableName}: " . $e->getMessage() . "\n\n";
-                continue; // Skip this table if we can't even get its structure
+                fwrite($handle, "-- Error getting create statement for {$tableName}: " . $e->getMessage() . "\n\n");
+                continue;
             }
 
             // Get table data
             try {
-                $rows = DB::table($tableName)->get();
+                fwrite($handle, "-- Data for table: {$tableName}\n");
                 
-                if ($rows->count() > 0) {
-                    $sql .= "-- Data for table: {$tableName}\n";
-                    
-                    foreach ($rows as $row) {
-                        $values = [];
-                        foreach ((array)$row as $value) {
-                            if (is_null($value)) {
-                                $values[] = 'NULL';
-                            } else {
-                                $values[] = "'" . addslashes((string)$value) . "'";
-                            }
+                foreach (DB::table($tableName)->cursor() as $row) {
+                    $values = [];
+                    foreach ((array)$row as $value) {
+                        if (is_null($value)) {
+                            $values[] = 'NULL';
+                        } else {
+                            $values[] = "'" . addslashes((string)$value) . "'";
                         }
-                        $sql .= "INSERT INTO `{$tableName}` VALUES (" . implode(', ', $values) . ");\n";
                     }
-                    $sql .= "\n";
+                    fwrite($handle, "INSERT INTO `{$tableName}` VALUES (" . implode(', ', $values) . ");\n");
                 }
+                
+                fwrite($handle, "\n");
             } catch (\Exception $e) {
                 \Log::warning("Could not read table {$tableName}: " . $e->getMessage());
-                $sql .= "-- Error reading table data for {$tableName}: " . $e->getMessage() . "\n\n";
+                fwrite($handle, "-- Error reading table data for {$tableName}: " . $e->getMessage() . "\n\n");
             }
         }
 
-        $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
-
-        // Write to file
-        file_put_contents($filepath, $sql);
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
+        fclose($handle);
 
         \Log::info("Backup created: {$filepath} (" . filesize($filepath) . " bytes)");
 
