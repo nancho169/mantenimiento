@@ -52,6 +52,8 @@ interface HardwareAsset {
     fecha_adquisicion?: string;
     garantia_hasta?: string;
     requiere_mantenimiento?: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 

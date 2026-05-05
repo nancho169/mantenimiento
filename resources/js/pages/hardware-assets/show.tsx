@@ -49,6 +49,16 @@ interface Document {
     created_at: string;
 }
 
+interface Maintenance {
+    id: number;
+    asset_id: number;
+    fecha_servicio: string;
+    tecnico: string;
+    descripcion: string;
+    proximo_mantenimiento: string | null;
+    created_at: string;
+}
+
 interface Area {
     id: number;
     nombre: string;
@@ -65,6 +75,7 @@ interface HardwareAsset {
     area_id: number;
     area?: Area;
     documents?: Document[];
+    maintenances?: Maintenance[];
     created_at: string;
     updated_at: string;
 }
@@ -554,13 +565,59 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                             <TabsContent value="maintenance" className="mt-4">
                                 <Card>
                                     <CardContent className="pt-6">
-                                        <div className="text-center py-8">
-                                            <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                            <h3 className="font-semibold mb-2">Sin registros de mantenimiento</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                No hay mantenimientos registrados para este equipo.
-                                            </p>
-                                        </div>
+                                        {asset.maintenances && asset.maintenances.length > 0 ? (
+                                            <div className="space-y-6">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h3 className="font-semibold text-lg">Historial de Mantenimientos ({asset.maintenances.length})</h3>
+                                                    <Button variant="outline" size="sm" onClick={handleRegisterMaintenance} className="gap-2">
+                                                        <Wrench className="h-4 w-4" />
+                                                        Nuevo Registro
+                                                    </Button>
+                                                </div>
+                                                <div className="relative space-y-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                                                    {asset.maintenances.map((maint, index) => (
+                                                        <div key={maint.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                                            {/* Icono de la línea de tiempo */}
+                                                            <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-primary text-slate-500 group-[.is-active]:text-primary-foreground shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                                                                <Wrench className="h-5 w-5" />
+                                                            </div>
+                                                            {/* Contenido */}
+                                                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow">
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <time className="font-mono text-sm font-bold text-primary">
+                                                                        {new Date(maint.fecha_servicio).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                    </time>
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        {maint.tecnico}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="text-slate-500 text-sm mb-2">{maint.descripcion}</div>
+                                                                {maint.proximo_mantenimiento && (
+                                                                    <div className="flex items-center gap-2 mt-2 pt-2 border-t text-xs text-muted-foreground">
+                                                                        <Calendar className="h-3 w-3" />
+                                                                        <span>Próximo: {new Date(maint.proximo_mantenimiento).toLocaleDateString()}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12">
+                                                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <Wrench className="h-8 w-8 text-muted-foreground" />
+                                                </div>
+                                                <h3 className="font-semibold text-xl mb-2">Sin registros de mantenimiento</h3>
+                                                <p className="text-muted-foreground max-w-xs mx-auto mb-6">
+                                                    No hay mantenimientos registrados para este equipo aún.
+                                                </p>
+                                                <Button onClick={handleRegisterMaintenance} className="gap-2">
+                                                    <Wrench className="h-4 w-4" />
+                                                    Registrar Primer Mantenimiento
+                                                </Button>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </TabsContent>

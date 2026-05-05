@@ -67,6 +67,8 @@ interface PcDetail {
     observaciones?: string;
     tiene_garantia?: boolean;
     fecha_instalacion_so?: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export default function PcDetailEdit({ detail }: { detail: PcDetail }) {
