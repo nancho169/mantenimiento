@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateHardwareAssetRequest extends FormRequest
 {
@@ -27,7 +28,14 @@ class UpdateHardwareAssetRequest extends FormRequest
             'tipo' => 'required|in:PC,Impresora,Monitor,Periférico,Servidor,Laptop,Router,Telefono,Escáner,Tablet',
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
-            'numero_serie' => 'nullable|string|max:255|unique:hardware_assets,numero_serie,' . $hardwareAsset->id,
+            'numero_serie' => [
+                'nullable', 
+                'string', 
+                'max:255', 
+                Rule::unique('hardware_assets', 'numero_serie')
+                    ->ignore($hardwareAsset->id)
+                    ->whereNotNull('numero_serie')
+            ],
             'estado' => 'required|in:Operativo,En Reparación,Baja,En Mantenimiento,Dañado,Reservado',
             'area_id' => 'nullable|exists:areas,id',
             'descripcion' => 'nullable|string',
