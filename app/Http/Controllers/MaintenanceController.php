@@ -22,6 +22,19 @@ class MaintenanceController extends Controller
         ]);
     }
 
+    public function upcoming()
+    {
+        $maintenances = Maintenance::with(['hardwareAsset', 'hardwareAsset.area'])
+            ->whereNotNull('proximo_mantenimiento')
+            ->where('proximo_mantenimiento', '>=', now()->toDateString())
+            ->orderBy('proximo_mantenimiento', 'asc')
+            ->get();
+
+        return Inertia::render('maintenances/upcoming', [
+            'maintenances' => $maintenances
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

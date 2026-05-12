@@ -41,6 +41,12 @@ class DashboardController extends Controller
             ->orderBy('month')
             ->get()
             ->mapWithKeys(fn($item) => [$item->month => $item->count]);
+        
+        // Upcoming maintenances count (next 7 days)
+        $upcomingMaintenancesCount = Maintenance::whereNotNull('proximo_mantenimiento')
+            ->where('proximo_mantenimiento', '>=', now()->toDateString())
+            ->where('proximo_mantenimiento', '<=', now()->addDays(7)->toDateString())
+            ->count();
 
         // Recent maintenances - simplified without tipo_mantenimiento and area
         $recentMaintenances = Maintenance::with(['hardwareAsset:id,marca,modelo,area_id', 'hardwareAsset.area:id,nombre'])
@@ -59,6 +65,7 @@ class DashboardController extends Controller
                 'totalMaintenances' => $totalMaintenances,
                 'totalAreas' => $totalAreas,
                 'totalPcDetails' => $totalPcDetails,
+                'upcomingCount' => $upcomingMaintenancesCount,
                 'operationalPercentage' => $totalAssets > 0 ? round(($operationalAssets / $totalAssets) * 100, 1) : 0,
             ],
             'charts' => [

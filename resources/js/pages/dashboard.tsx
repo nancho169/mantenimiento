@@ -25,6 +25,8 @@ import {
 import areasRoutes from '@/routes/areas';
 import hardwareAssetsRoutes from '@/routes/hardware-assets';
 import maintenancesRoutes from '@/routes/maintenances';
+import { parseLocalDate } from '@/lib/utils';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -40,6 +42,7 @@ interface Stats {
     totalMaintenances: number;
     totalAreas: number;
     totalPcDetails: number;
+    upcomingCount: number;
     operationalPercentage: number;
 }
 
@@ -127,6 +130,26 @@ export default function Dashboard({ stats, charts, recentMaintenances }: Dashboa
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Error</AlertTitle>
                         <AlertDescription>{errorMessage}</AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Upcoming Maintenance Alert */}
+                {stats.upcomingCount > 0 && (
+                    <Alert className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-900 shadow-md">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                        <div className="flex-1">
+                            <AlertTitle className="text-orange-800 dark:text-orange-300 font-bold">
+                                Mantenimientos Próximos
+                            </AlertTitle>
+                            <AlertDescription className="text-orange-700 dark:text-orange-400">
+                                Hay <span className="font-bold">{stats.upcomingCount}</span> equipos que requieren mantenimiento en los próximos 7 días.
+                            </AlertDescription>
+                        </div>
+                        <Link href={maintenancesRoutes.upcoming().url}>
+                            <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white border-0">
+                                Ver Listado
+                            </Button>
+                        </Link>
                     </Alert>
                 )}
 
@@ -315,7 +338,7 @@ export default function Dashboard({ stats, charts, recentMaintenances }: Dashboa
                                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" />
-                                                    {new Date(maintenance.fecha_servicio).toLocaleDateString('es-ES')}
+                                                    {parseLocalDate(maintenance.fecha_servicio).toLocaleDateString('es-ES')}
                                                 </span>
                                                 {maintenance.hardware_asset.area && (
                                                     <span className="flex items-center gap-1">

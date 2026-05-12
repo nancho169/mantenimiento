@@ -30,6 +30,7 @@ import hardwareAssets from '@/routes/hardware-assets';
 import maintenances from '@/routes/maintenances';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { parseLocalDate } from '@/lib/utils';
 
 interface User {
     id: number;
@@ -343,6 +344,15 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
         });
     };
 
+    const formatJustDate = (dateString: string) => {
+        if (!dateString) return '-';
+        return parseLocalDate(dateString).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
     const handleRegisterMaintenance = () => {
         router.visit(maintenances.create({ query: { asset_id: asset.id } }).url);
     };
@@ -585,7 +595,7 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                                                             <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow">
                                                                 <div className="flex items-center justify-between mb-1">
                                                                     <time className="font-mono text-sm font-bold text-primary">
-                                                                        {new Date(maint.fecha_servicio).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                        {formatJustDate(maint.fecha_servicio)}
                                                                     </time>
                                                                     <Badge variant="outline" className="text-xs">
                                                                         {maint.tecnico}
@@ -595,7 +605,7 @@ export default function HardwareAssetShow({ asset }: { asset: HardwareAsset }) {
                                                                 {maint.proximo_mantenimiento && (
                                                                     <div className="flex items-center gap-2 mt-2 pt-2 border-t text-xs text-muted-foreground">
                                                                         <Calendar className="h-3 w-3" />
-                                                                        <span>Próximo: {new Date(maint.proximo_mantenimiento).toLocaleDateString()}</span>
+                                                                        <span>Próximo: {formatJustDate(maint.proximo_mantenimiento)}</span>
                                                                     </div>
                                                                 )}
                                                             </div>

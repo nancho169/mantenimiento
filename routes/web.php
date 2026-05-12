@@ -25,6 +25,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pc-details/export', [PcDetailController::class, 'export'])->name('pc-details.export');
     Route::get('pc-details/report', [PcDetailController::class, 'report'])->name('pc-details.report');
     Route::resource('pc-details', PcDetailController::class);
+    Route::get('maintenances/upcoming', [MaintenanceController::class, 'upcoming'])->name('maintenances.upcoming');
     Route::resource('maintenances', MaintenanceController::class);
     
     // Document routes

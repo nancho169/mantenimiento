@@ -34,6 +34,8 @@ import { format, isPast, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { parseLocalDate } from '@/lib/utils';
+
 
 interface HardwareAsset {
     id: number;
@@ -72,12 +74,12 @@ export default function MaintenanceIndex({ maintenances }: { maintenances: Maint
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
-        return format(new Date(dateString), 'dd MMM yyyy', { locale: es });
+        return format(parseLocalDate(dateString), 'dd MMM yyyy', { locale: es });
     };
 
     const getStatusBadge = (dateStr?: string) => {
         if (!dateStr) return null;
-        const date = parseISO(dateStr);
+        const date = parseLocalDate(dateStr);
         if (isPast(date) && !isToday(date)) {
             return <Badge variant="destructive" className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 shadow-sm">⚠️ Vencido</Badge>;
         }
